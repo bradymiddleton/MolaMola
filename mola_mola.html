@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>The Laziest Giant - Mola Mola Metabolic Efficiency</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #040D12;
+  --panel: rgba(0,200,180,0.04);
+  --border: rgba(0,200,180,0.12);
+  --text: #D4EDE8;
+  --muted: #5A8A82;
+  --teal: #00C8B4;
+  --teal2: #00E8CC;
+  --coral: #FF6B4A;
+  --gold: #FFD580;
+  --font-display: 'Playfair Display', serif;
+  --font-mono: 'DM Mono', monospace;
+  --font-body: 'DM Sans', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg); color: var(--text);
+  font-family: var(--font-body); overflow-x: hidden; min-height: 100vh;
+}
+body::before {
+  content: ''; position: fixed; inset: 0; z-index: 0;
+  background:
+    radial-gradient(ellipse 80% 40% at 20% 60%, rgba(0,120,100,0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 60% at 80% 30%, rgba(0,80,140,0.09) 0%, transparent 60%),
+    radial-gradient(ellipse 100% 80% at 50% 100%, rgba(0,40,60,0.4) 0%, transparent 70%);
+  pointer-events: none;
+}
+.wrap { position: relative; z-index: 1; max-width: 1140px; margin: 0 auto; padding: 72px 32px 120px; }
+
+@keyframes bubble {
+  0%{transform:translateY(0) scale(1);opacity:0.35;}
+  50%{opacity:0.6;}
+  100%{transform:translateY(-130px) scale(1.2);opacity:0;}
+}
+.bubble { position:fixed; border-radius:50%; background:rgba(0,200,180,0.12); pointer-events:none; z-index:0; animation:bubble var(--dur,8s) ease-in infinite var(--dl,0s); }
+
+/* HERO */
+.hero { display:grid; grid-template-columns:1fr auto; gap:32px; align-items:end; margin-bottom:80px; border-bottom:1px solid var(--border); padding-bottom:48px; }
+.hero-kicker { font-family:var(--font-mono); font-size:10px; letter-spacing:0.3em; text-transform:uppercase; color:var(--teal); margin-bottom:16px; }
+.hero h1 { font-family:var(--font-display); font-size:clamp(38px,5vw,64px); font-weight:900; line-height:1.05; color:#fff; margin-bottom:18px; }
+.hero h1 em { font-style:italic; color:var(--teal2); }
+.hero-sub { font-size:13.5px; color:var(--muted); line-height:1.85; max-width:480px; }
+.hero-stat { text-align:right; flex-shrink:0; }
+.hero-stat .big { font-family:var(--font-display); font-size:clamp(52px,7vw,88px); font-weight:900; line-height:1; color:var(--teal2); }
+.hero-stat .big-unit { font-family:var(--font-mono); font-size:12px; color:var(--muted); margin-top:4px; }
+.hero-stat .big-label { font-family:var(--font-mono); font-size:9px; letter-spacing:0.25em; text-transform:uppercase; color:var(--muted); margin-top:6px; }
+
+/* SECTIONS */
+.section { margin-bottom:88px; }
+.sec-label { font-family:var(--font-mono); font-size:9px; letter-spacing:0.3em; text-transform:uppercase; color:var(--teal); margin-bottom:10px; }
+.sec-title { font-family:var(--font-display); font-size:26px; font-weight:700; color:#fff; margin-bottom:8px; }
+.sec-sub { font-size:12.5px; color:var(--muted); line-height:1.8; margin-bottom:32px; max-width:700px; }
+
+/* NUMBER LINE */
+.nl-canvas-wrap { background:rgba(0,200,180,0.025); border:1px solid var(--border); border-radius:12px; overflow:hidden; position:relative; }
+#nlCanvas { width:100%; display:block; }
+.nl-tooltip { position:absolute; background:rgba(4,13,18,0.96); border:1px solid var(--teal); border-radius:8px; padding:12px 16px; pointer-events:none; opacity:0; transition:opacity 0.15s; font-family:var(--font-mono); font-size:11px; max-width:230px; z-index:10; }
+.nl-tooltip .tt-name { font-size:13px; color:var(--teal2); font-weight:500; margin-bottom:6px; }
+.nl-tooltip .tt-row { color:var(--muted); line-height:1.7; }
+.nl-tooltip .tt-val { color:#fff; }
+
+/* DENSITY BARS */
+.density-bar-wrap { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:24px 28px; margin-bottom:24px; }
+.density-bar-wrap h4 { font-family:var(--font-mono); font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:var(--teal); margin-bottom:20px; }
+.dbar-row { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+.dbar-label { font-family:var(--font-mono); font-size:10.5px; color:var(--text); width:160px; flex-shrink:0; }
+.dbar-track { flex:1; background:rgba(255,255,255,0.05); border-radius:3px; height:10px; overflow:hidden; }
+.dbar-fill { height:100%; border-radius:3px; }
+.dbar-val { font-family:var(--font-mono); font-size:10px; color:var(--muted); width:90px; text-align:right; flex-shrink:0; }
+
+/* DENSITY CARDS */
+.density-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:24px; }
+@media(max-width:700px){ .density-grid{grid-template-columns:1fr;} }
+.d-card { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:20px; position:relative; overflow:hidden; }
+.d-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:var(--accent-color,var(--teal)); }
+.d-card .d-animal { font-family:var(--font-display); font-size:17px; font-weight:700; color:#fff; margin-bottom:6px; }
+.d-card .d-density { font-family:var(--font-mono); font-size:22px; font-weight:500; color:var(--accent-color,var(--teal)); margin-bottom:4px; }
+.d-card .d-unit { font-family:var(--font-mono); font-size:9px; letter-spacing:0.2em; text-transform:uppercase; color:var(--muted); margin-bottom:12px; }
+.d-card .d-desc { font-size:11px; color:var(--muted); line-height:1.7; }
+
+/* DIAGRAM */
+.diagram-canvas-wrap { background:rgba(0,200,180,0.025); border:1px solid var(--border); border-radius:14px; overflow:hidden; margin-bottom:20px; }
+#molaCanvas { width:100%; display:block; }
+
+/* STAT CARDS */
+.stat-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:14px; margin-bottom:20px; }
+@media(max-width:900px){ .stat-grid{grid-template-columns:repeat(3,1fr);} }
+@media(max-width:600px){ .stat-grid{grid-template-columns:1fr 1fr;} }
+.stat-card { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:16px 18px; position:relative; }
+.stat-card::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; border-radius:3px 0 0 3px; background:var(--card-accent,var(--teal)); }
+.stat-card .sc-label { font-family:var(--font-mono); font-size:8px; letter-spacing:0.25em; text-transform:uppercase; color:var(--muted); margin-bottom:5px; }
+.stat-card .sc-val { font-family:var(--font-display); font-size:18px; font-weight:700; color:var(--card-accent,var(--teal2)); line-height:1.15; margin-bottom:5px; }
+.stat-card .sc-note { font-size:10.5px; color:var(--muted); line-height:1.6; }
+
+/* BMR COMPARISON ROW */
+.bmr-row-wrap { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:18px 22px; }
+.bmr-row-wrap h4 { font-family:var(--font-mono); font-size:9px; letter-spacing:0.25em; text-transform:uppercase; color:var(--teal); margin-bottom:14px; }
+.bmr-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; }
+@media(max-width:900px){ .bmr-grid{grid-template-columns:repeat(3,1fr);} }
+@media(max-width:600px){ .bmr-grid{grid-template-columns:1fr 1fr;} }
+.bmr-item { display:flex; align-items:center; gap:8px; }
+.bmr-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+.bmr-name { font-family:var(--font-mono); font-size:9.5px; color:var(--text); }
+.bmr-val { font-family:var(--font-mono); font-size:9px; color:var(--muted); margin-left:auto; white-space:nowrap; }
+.bmr-item.hi .bmr-name { color:var(--teal2); font-weight:500; }
+.bmr-item.hi .bmr-val { color:var(--teal2); }
+
+/* MATH */
+.math-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+@media(max-width:800px){ .math-grid{grid-template-columns:1fr;} }
+.math-card { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:20px 22px; }
+.math-card .m-label { font-family:var(--font-mono); font-size:8.5px; letter-spacing:0.28em; text-transform:uppercase; color:var(--teal); margin-bottom:12px; }
+.math-card .m-eq { font-family:var(--font-mono); font-size:13.5px; color:#fff; line-height:2.1; margin-bottom:12px; padding:10px 13px; background:rgba(0,200,180,0.06); border-left:2px solid var(--teal); border-radius:0 4px 4px 0; }
+.m-eq .v{color:var(--gold);} .m-eq .n{color:var(--teal2);} .m-eq .op{color:var(--coral);}
+.math-card .m-note { font-size:11px; color:var(--muted); line-height:1.8; }
+.math-card .m-note b { color:var(--text); font-weight:500; }
+
+/* PROSE */
+.prose-2col { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+@media(max-width:720px){ .prose-2col{grid-template-columns:1fr;} }
+.prose-block { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:20px 22px; }
+.prose-block h4 { font-family:var(--font-display); font-size:15px; font-weight:700; color:#fff; margin-bottom:10px; padding-bottom:8px; border-bottom:1px solid var(--border); }
+.prose-block p { font-size:12px; color:var(--muted); line-height:1.85; }
+.prose-block p + p { margin-top:8px; }
+
+footer { text-align:center; font-family:var(--font-mono); font-size:10px; color:var(--muted); line-height:2; border-top:1px solid var(--border); padding-top:36px; }
+</style>
+</head>
+<body>
+<div id="bubbles"></div>
+<div class="wrap">
+
+  <!-- TITLE -->
+  <div class="hero">
+    <div>
+      <div class="hero-kicker">Comparative Bioenergetics / Vertebrate Metabolism</div>
+      <h1>The Laziest<br/>Giant in the Sea:<br/><em>Mola Mola</em></h1>
+      <p class="hero-sub">The ocean sunfish weighs up to a ton, spans 10 feet tip to fin, and burns about as many calories per day as a housecat. Here is what the math actually looks like and why size alone does not tell the whole story.</p>
+    </div>
+    <div class="hero-stat">
+      <div class="big">1,067</div>
+      <div class="big-unit">kcal / day</div>
+      <div class="big-label">Mola Mola BMR<br/>at 1,000 kg</div>
+    </div>
+  </div>
+
+  <!-- 01: BODY COMPOSITION -->
+  <div class="section">
+    <div class="sec-label">01 / Body Composition</div>
+    <div class="sec-title">Volume vs. Mass: Why Density Changes Everything</div>
+    <div class="sec-sub">Two animals can share the same volume of space but have wildly different metabolic costs to run. The Mola Mola exploits this gap more aggressively than any other vertebrate. Its body is mostly a buoyant, low-cost structural material that barely needs feeding.</div>
+
+    <div class="density-grid">
+      <div class="d-card" style="--accent-color:#FF6B4A">
+        <div class="d-animal">African Lion</div>
+        <div class="d-density">~1,060</div>
+        <div class="d-unit">kg / m3 effective tissue</div>
+        <div class="d-desc">Approximately 60% skeletal muscle by body mass. Muscle is metabolically expensive at 13 kcal/kg/day at rest, demanding constant fuel just to exist. A lion's body is a dense, energy-hungry machine.</div>
+      </div>
+      <div class="d-card" style="--accent-color:#FFD580">
+        <div class="d-animal">Blue Whale</div>
+        <div class="d-density">~950</div>
+        <div class="d-unit">kg / m3 effective tissue</div>
+        <div class="d-desc">Roughly 35% blubber by body mass. Blubber burns only ~4.5 kcal/kg/day at rest, far less than muscle. The whale's mass is real but a large slice of it is metabolically cheap insulation and energy reserve.</div>
+      </div>
+      <div class="d-card" style="--accent-color:#00E8CC">
+        <div class="d-animal">Mola Mola</div>
+        <div class="d-density">~40</div>
+        <div class="d-unit">kg / m3 effective tissue</div>
+        <div class="d-desc">Its subcutaneous gelatinous capsule, 89.8% water in a collagen and elastin mesh, makes up 44% of body mass in adults. This layer is nearly as buoyant as seawater and burns almost no calories. The Mola is mostly structural scaffolding with a metabolism attached.</div>
+      </div>
+    </div>
+
+    <div class="density-bar-wrap">
+      <h4>Metabolic rate per kilogram of body mass per day</h4>
+      <div id="dbars"></div>
+    </div>
+  </div>
+
+  <!-- 02: ANATOMY OF AN OUTLIER -->
+  <div class="section">
+    <div class="sec-label">02 / Anatomy of an Outlier</div>
+    <div class="sec-title">Body Composition of the Mola Mola</div>
+    <div class="sec-sub">Every layer of the Mola's body is built for doing a lot with very little fuel. The diagram below breaks down where that 1,000 kg actually goes.</div>
+
+    <div class="diagram-canvas-wrap">
+      <canvas id="molaCanvas" height="380"></canvas>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat-card" style="--card-accent:#00E8CC">
+        <div class="sc-label">Resting Metabolic Rate</div>
+        <div class="sc-val">1,067 kcal/day</div>
+        <div class="sc-note">At 1,000 kg this is roughly equivalent to a domestic cat. A warm-blooded animal this size would need ~12,400 kcal/day.</div>
+      </div>
+      <div class="stat-card" style="--card-accent:#F5A623">
+        <div class="sc-label">Growth Rate</div>
+        <div class="sc-val">+0.8 kg/day</div>
+        <div class="sc-note">One captive Mola at Monterey Bay Aquarium gained 364 kg in 14 months. They hatch under 2 mm and grow 60 million times over a lifetime.</div>
+      </div>
+      <div class="stat-card" style="--card-accent:#FF6B4A">
+        <div class="sc-label">Gelatinous Capsule</div>
+        <div class="sc-val">44% of mass</div>
+        <div class="sc-note">The subcutaneous jelly layer is 89.8% water in a collagen-elastin mesh. Density ~1.015 g/mL, nearly seawater. Almost zero metabolic cost.</div>
+      </div>
+      <div class="stat-card" style="--card-accent:#7EC8F0">
+        <div class="sc-label">Skeleton</div>
+        <div class="sc-val">Cartilaginous</div>
+        <div class="sc-note">Despite being a bony fish (teleost), the Mola has a degenerate, largely cartilaginous skeleton. Cartilage is cheaper to build and maintain than mineralized bone.</div>
+      </div>
+      <div class="stat-card" style="--card-accent:#A8D8A0">
+        <div class="sc-label">Fecundity</div>
+        <div class="sc-val">300M eggs</div>
+        <div class="sc-note">Most fecund vertebrate on Earth. Up to 300 million eggs per spawning season, each just 1.3 mm. A pure r-strategy: flood the ocean and let survival sort it out.</div>
+      </div>
+    </div>
+
+    <div class="bmr-row-wrap">
+      <h4>Other vertebrate BMRs for context</h4>
+      <div class="bmr-grid">
+        <div class="bmr-item"><div class="bmr-dot" style="background:#FF6B4A"></div><div class="bmr-name">Etruscan Shrew</div><div class="bmr-val">~1 kcal/d</div></div>
+        <div class="bmr-item"><div class="bmr-dot" style="background:#FF9A5C"></div><div class="bmr-name">Hummingbird</div><div class="bmr-val">~1 kcal/d</div></div>
+        <div class="bmr-item"><div class="bmr-dot" style="background:#FFC07A"></div><div class="bmr-name">House Mouse</div><div class="bmr-val">~4 kcal/d</div></div>
+        <div class="bmr-item"><div class="bmr-dot" style="background:#FFD580"></div><div class="bmr-name">Domestic Cat</div><div class="bmr-val">~198 kcal/d</div></div>
+        <div class="bmr-item"><div class="bmr-dot" style="background:#A8D8E8"></div><div class="bmr-name">Human</div><div class="bmr-val">~1,694 kcal/d</div></div>
+        <div class="bmr-item hi"><div class="bmr-dot" style="background:#00E8CC;box-shadow:0 0 5px #00E8CC"></div><div class="bmr-name">Mola Mola</div><div class="bmr-val">~1,067 kcal/d</div></div>
+        <div class="bmr-item"><div class="bmr-dot" style="background:#F5A623"></div><div class="bmr-name">Lion</div><div class="bmr-val">~3,582 kcal/d</div></div>
+        <div class="bmr-item"><div class="bmr-dot" style="background:#5DBF9A"></div><div class="bmr-name">Saltwater Croc</div><div class="bmr-val">~586 kcal/d</div></div>
+        <div class="bmr-item"><div class="bmr-dot" style="background:#7090B0"></div><div class="bmr-name">African Elephant</div><div class="bmr-val">~35,208 kcal/d</div></div>
+        <div class="bmr-item"><div class="bmr-dot" style="background:#5070A0"></div><div class="bmr-name">Blue Whale</div><div class="bmr-val">~533,539 kcal/d</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 03: THE SCALE -->
+  <div class="section">
+    <div class="sec-label">03 / The Scale</div>
+    <div class="sec-title">BMR Per Kilogram Across 10 Vertebrates</div>
+    <div class="sec-sub">Each dot is an animal's resting calorie burn per kilogram of body mass per day. The scale is logarithmic because the range spans nearly 3 orders of magnitude. Hover any dot to explore. When you account for mass, the Mola slides to the very bottom of the chart despite being one of the largest animals on it.</div>
+    <div class="nl-canvas-wrap">
+      <canvas id="nlCanvas" height="320"></canvas>
+      <div class="nl-tooltip" id="tooltip">
+        <div class="tt-name" id="tt-name"></div>
+        <div class="tt-row">Mass: <span class="tt-val" id="tt-mass"></span></div>
+        <div class="tt-row">Total BMR: <span class="tt-val" id="tt-bmr"></span></div>
+        <div class="tt-row">Per kg: <span class="tt-val" id="tt-perkg"></span></div>
+        <div class="tt-row">Type: <span class="tt-val" id="tt-type"></span></div>
+        <div class="tt-row" style="margin-top:6px;font-size:10px;line-height:1.6" id="tt-note"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 04: THE MATH -->
+  <div class="section">
+    <div class="sec-label">04 / The Math</div>
+    <div class="sec-title">Kleiber's Law and the 3/4 Power Rule</div>
+    <div class="sec-sub">In 1932, Swiss biologist Max Kleiber discovered that metabolic rate scales not linearly with mass but as mass to the 3/4 power. This means doubling an animal's size less than doubles its calorie needs. The law holds across 27 orders of magnitude.</div>
+    <div class="math-grid">
+      <div class="math-card">
+        <div class="m-label">Kleiber's Law (Endotherms)</div>
+        <div class="m-eq"><span class="v">BMR</span> = <span class="n">70</span> <span class="op">*</span> <span class="v">M</span><sup><span class="n">0.75</span></sup></div>
+        <div class="m-note"><b>BMR</b> = basal metabolic rate in kcal/day. <b>M</b> = body mass in kg. <b>70</b> = intercept calibrated to mammals. <b>0.75</b> = the 3/4 exponent.<br/><br/>Applied to a 190 kg lion: 70 * 190^0.75 = <b>3,582 kcal/day</b>. Applied to a 70 kg human: 70 * 70^0.75 = <b>1,694 kcal/day</b>. The lion is 2.7x heavier but only 2.1x hungrier.</div>
+      </div>
+      <div class="math-card">
+        <div class="m-label">SMR for Ectotherms (Fish and Reptiles)</div>
+        <div class="m-eq"><span class="v">SMR</span> = <span class="n">6</span> <span class="op">*</span> <span class="v">M</span><sup><span class="n">0.75</span></sup></div>
+        <div class="m-note">Ectotherms use the same exponent but a much smaller intercept, roughly 6 instead of 70, because they do not burn calories to maintain body temperature.<br/><br/>Mola Mola at 1,000 kg: 6 * 1000^0.75 = <b>1,067 kcal/day</b>. A warm-blooded animal of the same mass would need <b>12,449 kcal/day</b>. Being cold-blooded saves the Mola <b>11,382 kcal every single day</b>.</div>
+      </div>
+      <div class="math-card">
+        <div class="m-label">Mass-Specific Rate (the flip)</div>
+        <div class="m-eq"><span class="v">BMR</span>/<span class="v">M</span> = <span class="n">70</span> <span class="op">*</span> <span class="v">M</span><sup><span class="op">-</span><span class="n">0.25</span></sup></div>
+        <div class="m-note">Divide both sides of Kleiber's law by M and the exponent flips sign. Per kilogram of body mass, <b>smaller animals burn more</b>, not less. A shrew burns ~331 kcal/kg/day. An elephant burns ~8.8 kcal/kg/day.<br/><br/>The Mola at only ~1.1 kcal/kg/day sits at the extreme low end of all vertebrates measured, lower even than the elephant, only possible because of ectothermy plus a body that is 44% metabolically inert jelly.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 05: CONTEXT -->
+  <div class="section">
+    <div class="sec-label">05 / Context and Caveats</div>
+    <div class="sec-title">What This Model Does and Does Not Show</div>
+    <div class="prose-2col">
+      <div class="prose-block">
+        <h4>Endotherm vs. Ectotherm</h4>
+        <p>The biggest single variable in this chart is not size. It is thermoregulation. Mammals and birds burn enormous energy keeping internal temperatures stable regardless of the environment. Fish, reptiles, and amphibians let ambient temperature drive their chemistry.</p>
+        <p>This is why the saltwater crocodile (450 kg) burns fewer calories per day than a domestic cat (4 kg), and why the Mola Mola at a full ton can survive eating relatively little. Being cold-blooded is, metabolically, an enormous advantage in a resource-scarce ocean.</p>
+      </div>
+      <div class="prose-block">
+        <h4>The Mola's Structural Trick</h4>
+        <p>Its subcutaneous gelatinous capsule, documented by Watanabe and Sato (2008) as constituting up to 44% of adult body mass, is 89.8% water held in a collagen and elastin mesh. This tissue has near-zero metabolic cost but provides buoyancy and structural support.</p>
+        <p>The result: the Mola has enormous physical volume and impressive mass, but a large fraction of that mass requires almost no fuel to maintain. It is the biological equivalent of building a skyscraper out of foam instead of steel. Same footprint, a fraction of the structural cost.</p>
+      </div>
+      <div class="prose-block">
+        <h4>Hummingbird: The Other Extreme</h4>
+        <p>The ruby-throated hummingbird makes the opposite bet. At roughly 3 grams, it burns approximately 300 kcal per kilogram per day, more than any other bird and close to the ceiling for vertebrate metabolism. Its heart beats up to 1,260 times per minute in flight.</p>
+        <p>The hummingbird and the Mola represent the two ends of a single evolutionary spectrum: how much metabolic machinery do you build, and how fast do you run it? Neither strategy is wrong. They are both wildly successful in their niches.</p>
+      </div>
+      <div class="prose-block">
+        <h4>Model Limitations</h4>
+        <p>Kleiber's Law gives us predicted BMR from mass alone. Real animals deviate based on activity level, diet, climate, reproductive state, and body composition. The Mola values here are estimated using the ectotherm SMR formula (intercept ~6) rather than measured directly, as very few calorimetric studies exist for live Mola Mola.</p>
+        <p>The density figures for body composition are illustrative approximations synthesized from the literature. The qualitative story, Mola as an extreme metabolic outlier due to ectothermy and gelatinous body composition, is well-supported. Treat the exact numbers as order-of-magnitude estimates.</p>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div>Data: Kleiber (1947), West et al. (1997), Watanabe and Sato (2008), Wang et al. (2012)</div>
+    <div style="margin-top:5px">BMR: 70 * M^0.75 (endotherms) / 6 * M^0.75 (ectotherms) / M in kg / Built with vanilla JS and Canvas API</div>
+  </footer>
+</div>
+
+<script>
+// BUBBLES
+(()=>{
+  const w=document.getElementById('bubbles');
+  for(let i=0;i<16;i++){
+    const b=document.createElement('div'); b.className='bubble';
+    const sz=Math.random()*12+4;
+    b.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}vw;bottom:${Math.random()*20}px;--dur:${(Math.random()*10+6).toFixed(1)}s;--dl:-${(Math.random()*12).toFixed(1)}s;`;
+    w.appendChild(b);
+  }
+})();
+
+// ANIMAL DATA
+const ANIMALS=[
+  {name:'Etruscan Shrew',mass:0.002,bmr:0.7,  perkg:331,  type:'endotherm',color:'#FF6B4A',
+   note:'Smallest mammal by mass. Heart rate up to 1,500 bpm. Must eat nearly its own body weight daily.'},
+  {name:'Hummingbird',   mass:0.003,bmr:0.9,  perkg:300,  type:'endotherm',color:'#FF9A5C',
+   note:'Heart beats 1,260 bpm in flight. Enters torpor at night to survive, dropping BMR by 95%.'},
+  {name:'House Mouse',   mass:0.020,bmr:3.7,  perkg:186,  type:'endotherm',color:'#FFC07A',
+   note:'Must eat 15-20% of body weight daily. Lifespan ~2 years. Fast metabolism correlates with fast aging.'},
+  {name:'Domestic Cat',  mass:4,    bmr:198,  perkg:49.5, type:'endotherm',color:'#FFD580',
+   note:'Obligate carnivore. High-protein diet supports dense muscle tissue and moderate-high mass-specific BMR.'},
+  {name:'Human',         mass:70,   bmr:1694, perkg:24.2, type:'endotherm',color:'#A8D8E8',
+   note:'~40% skeletal muscle by mass. Brain alone accounts for ~20% of resting calorie burn despite being 2% of body mass.'},
+  {name:'Mola Mola',     mass:1000, bmr:1067, perkg:1.07, type:'ectotherm',color:'#00E8CC',
+   note:'Gelatinous capsule = 44% of adult body mass (89.8% water). Estimated SMR. Lowest mass-specific rate of any vertebrate measured.'},
+  {name:'Lion',          mass:190,  bmr:3582, perkg:18.9, type:'endotherm',color:'#F5A623',
+   note:'~60% skeletal muscle by mass. Muscle costs ~13 kcal/kg/day at rest. A lion burns more per kg than almost any large mammal.'},
+  {name:'Saltw. Croc',   mass:450,  bmr:586,  perkg:1.3,  type:'ectotherm',color:'#5DBF9A',
+   note:'Can go months without eating. Ectothermy plus massive digestive capacity make it an extreme fasting specialist.'},
+  {name:'Elephant',      mass:4000, bmr:35208,perkg:8.8,  type:'endotherm',color:'#7090B0',
+   note:'Eats 150-300 kg of vegetation daily. Low mass-specific BMR but enormous absolute energy need due to sheer size.'},
+  {name:'Blue Whale',    mass:150000,bmr:533539,perkg:3.56,type:'endotherm',color:'#5070A0',
+   note:'~35-40% blubber. Blubber burns ~4.5 kcal/kg/day, metabolically cheap ballast. Lowest mass-specific BMR of endotherms.'},
+];
+
+// NUMBER LINE - per-kg only, no toggle
+let hoveredIdx=-1, dotPositions=[];
+
+function drawNL(){
+  const c=document.getElementById('nlCanvas');
+  const W=c.offsetWidth||900, H=320;
+  c.width=W*devicePixelRatio; c.height=H*devicePixelRatio;
+  const ctx=c.getContext('2d');
+  ctx.scale(devicePixelRatio,devicePixelRatio);
+
+  const PAD={left:62,right:42,top:55,bottom:78};
+  const pw=W-PAD.left-PAD.right;
+  const lineY=PAD.top+(H-PAD.top-PAD.bottom)*0.55;
+  ctx.clearRect(0,0,W,H);
+
+  const logMin=0, logMax=2.7;
+
+  ctx.fillStyle='rgba(0,200,180,0.015)'; ctx.fillRect(PAD.left,lineY-58,pw,116);
+
+  // axis
+  ctx.beginPath(); ctx.moveTo(PAD.left,lineY); ctx.lineTo(PAD.left+pw,lineY);
+  ctx.strokeStyle='rgba(0,200,180,0.28)'; ctx.lineWidth=1.5; ctx.stroke();
+
+  // ticks
+  for(let i=Math.ceil(logMin);i<=Math.floor(logMax);i++){
+    const x=PAD.left+((i-logMin)/(logMax-logMin))*pw;
+    ctx.beginPath(); ctx.moveTo(x,lineY-8); ctx.lineTo(x,lineY+8);
+    ctx.strokeStyle='rgba(0,200,180,0.28)'; ctx.lineWidth=1; ctx.stroke();
+    const val=Math.pow(10,i);
+    const label=val>=1000?`${(val/1000).toFixed(0)}k`:val.toFixed(0);
+    ctx.fillStyle='rgba(0,200,180,0.45)'; ctx.font=`9px 'DM Mono'`; ctx.textAlign='center';
+    ctx.fillText(label,x,lineY+22);
+  }
+
+  // sub-ticks at 2, 3 per decade
+  for(let i=Math.floor(logMin);i<Math.ceil(logMax);i++){
+    [2,3,5,7].forEach(sub=>{
+      const lv=i+Math.log10(sub);
+      if(lv<logMin||lv>logMax) return;
+      const x=PAD.left+((lv-logMin)/(logMax-logMin))*pw;
+      ctx.beginPath(); ctx.moveTo(x,lineY-4); ctx.lineTo(x,lineY+4);
+      ctx.strokeStyle='rgba(0,200,180,0.15)'; ctx.lineWidth=0.8; ctx.stroke();
+    });
+  }
+
+  ctx.fillStyle='rgba(0,200,180,0.32)'; ctx.font=`8.5px 'DM Mono'`; ctx.textAlign='center';
+  ctx.fillText('Per-kg BMR (kcal / kg / day)  log10 scale', PAD.left+pw/2, lineY+42);
+
+  // dots
+  dotPositions=[];
+  const sorted=[...ANIMALS].map((a,i)=>({...a,oi:i})).sort((a,b)=>a.perkg-b.perkg);
+  sorted.forEach((a,si)=>{
+    const logV=Math.log10(Math.max(a.perkg,0.01));
+    const x=PAD.left+((logV-logMin)/(logMax-logMin))*pw;
+    const isMola=a.name==='Mola Mola';
+    const isHov=hoveredIdx===a.oi;
+    const r=isMola?13:isHov?10:7;
+
+    if(isMola||isHov){
+      ctx.beginPath(); ctx.arc(x,lineY,r*2.8,0,Math.PI*2);
+      ctx.fillStyle=a.color+'30'; ctx.fill();
+    }
+    ctx.beginPath(); ctx.arc(x,lineY,r,0,Math.PI*2);
+    ctx.fillStyle=a.color; ctx.shadowColor=a.color; ctx.shadowBlur=isHov||isMola?14:4;
+    ctx.fill(); ctx.shadowBlur=0;
+    if(isMola){ ctx.beginPath(); ctx.arc(x,lineY,r,0,Math.PI*2); ctx.strokeStyle='#fff'; ctx.lineWidth=1.5; ctx.stroke(); }
+
+    const shortName=a.name.includes(' ')?a.name.split(' ').slice(-1)[0]:a.name;
+    const above=si%2===0;
+    const labelY=above?lineY-r-10:lineY+r+18;
+    ctx.fillStyle=isMola?'#00E8CC':isHov?'#fff':'rgba(180,220,210,0.72)';
+    ctx.font=isMola?`bold 10px 'DM Mono'`:`9px 'DM Mono'`; ctx.textAlign='center';
+    ctx.fillText(shortName,x,labelY);
+    ctx.beginPath(); ctx.moveTo(x,above?lineY-r:lineY+r); ctx.lineTo(x,above?lineY-r-5:lineY+r+5);
+    ctx.strokeStyle='rgba(255,255,255,0.14)'; ctx.lineWidth=1; ctx.stroke();
+
+    dotPositions.push({x,y:lineY,r:Math.max(r,10),idx:a.oi});
+  });
+}
+
+const tooltip=document.getElementById('tooltip');
+document.getElementById('nlCanvas').addEventListener('mousemove',e=>{
+  const c=document.getElementById('nlCanvas');
+  const rect=c.getBoundingClientRect();
+  const mx=e.clientX-rect.left, my=e.clientY-rect.top;
+  let found=-1;
+  for(const d of dotPositions){ if(Math.hypot(mx-d.x,my-d.y)<d.r+6){found=d.idx;break;} }
+  if(found!==hoveredIdx){hoveredIdx=found;drawNL();}
+  if(found>=0){
+    const a=ANIMALS[found];
+    document.getElementById('tt-name').textContent=a.name;
+    document.getElementById('tt-mass').textContent=a.mass>=1000?`${(a.mass/1000).toFixed(0)} tonnes`:`${a.mass} kg`;
+    document.getElementById('tt-bmr').textContent=a.bmr.toLocaleString()+' kcal/day';
+    document.getElementById('tt-perkg').textContent=a.perkg.toFixed(2)+' kcal/kg/day';
+    document.getElementById('tt-type').textContent=a.type;
+    document.getElementById('tt-note').textContent=a.note;
+    tooltip.style.opacity='1';
+    let tx=mx+18, ty=my-20;
+    if(tx+240>c.offsetWidth) tx=mx-256;
+    tooltip.style.left=tx+'px'; tooltip.style.top=ty+'px';
+  } else { tooltip.style.opacity='0'; }
+});
+document.getElementById('nlCanvas').addEventListener('mouseleave',()=>{hoveredIdx=-1;tooltip.style.opacity='0';drawNL();});
+
+// DENSITY BARS
+const DBARS=[
+  {name:'Etruscan Shrew', val:331,  color:'#FF6B4A'},
+  {name:'Hummingbird',    val:300,  color:'#FF9A5C'},
+  {name:'House Mouse',    val:186,  color:'#FFC07A'},
+  {name:'Domestic Cat',   val:49.5, color:'#FFD580'},
+  {name:'Human',          val:24.2, color:'#A8D8E8'},
+  {name:'Lion',           val:18.9, color:'#F5A623'},
+  {name:'African Elephant',val:8.8, color:'#7090B0'},
+  {name:'Blue Whale',     val:3.56, color:'#5070A0'},
+  {name:'Saltwater Croc', val:1.3,  color:'#5DBF9A'},
+  {name:'Mola Mola',      val:1.07, color:'#00E8CC'},
+].sort((a,b)=>b.val-a.val);
+const maxBar=DBARS[0].val;
+const dbarsEl=document.getElementById('dbars');
+DBARS.forEach(d=>{
+  const pct=(d.val/maxBar*100).toFixed(1);
+  const hi=d.name==='Mola Mola';
+  dbarsEl.innerHTML+=`<div class="dbar-row">
+    <div class="dbar-label" style="${hi?'color:#00E8CC;font-weight:500':''}">${d.name}</div>
+    <div class="dbar-track"><div class="dbar-fill" style="width:${pct}%;background:${d.color}"></div></div>
+    <div class="dbar-val" style="${hi?'color:#00E8CC':''}">${d.val.toFixed(1)} kcal/kg/d</div>
+  </div>`;
+});
+
+// MOLA DIAGRAM - fits tightly inside its canvas box
+function drawMola(){
+  const c=document.getElementById('molaCanvas');
+  const W=c.offsetWidth||1000;
+  const H=380;
+  c.width=W*devicePixelRatio; c.height=H*devicePixelRatio;
+  const ctx=c.getContext('2d');
+  ctx.scale(devicePixelRatio,devicePixelRatio);
+
+  // Background
+  const bgG=ctx.createLinearGradient(0,0,0,H);
+  bgG.addColorStop(0,'#071A22'); bgG.addColorStop(1,'#030C12');
+  ctx.fillStyle=bgG; ctx.fillRect(0,0,W,H);
+
+  // Caustic rays
+  for(let i=0;i<8;i++){
+    const rx=W*0.04+i*(W*0.12);
+    const rg=ctx.createLinearGradient(rx,0,rx+22,H*0.5);
+    rg.addColorStop(0,'rgba(0,200,180,0.045)'); rg.addColorStop(1,'rgba(0,200,180,0)');
+    ctx.fillStyle=rg;
+    ctx.beginPath(); ctx.moveTo(rx,0); ctx.lineTo(rx+30,H*0.5); ctx.lineTo(rx-6,H*0.5); ctx.closePath(); ctx.fill();
+  }
+
+  // Fish must fit within the box. Reserve horizontal margins for annotations.
+  // Annotations on left: ~22% of W, annotations on right: ~22% of W
+  // Fish center sits at 48% horizontal, body fits within middle 56%
+  const annotMarginH = W * 0.21;
+  const availW = W - annotMarginH * 2;   // usable width for fish body
+  const availH = H * 0.72;               // usable height (leave room for top/bottom labels)
+
+  // Body is taller than wide (disk shape), so size by height
+  const bodyH = Math.min(availH * 0.48, availW * 0.38);
+  const bodyW = bodyH * 0.74;            // disk is slightly wider than tall... actually sunfish is taller
+
+  const cx = W * 0.48;
+  const cy = H * 0.50;
+
+  // Layer 1: Gelatinous capsule (dashed outline)
+  ctx.save(); ctx.translate(cx,cy); ctx.scale(1, bodyH/bodyW);
+  const gelR = bodyW * 1.22;
+  const gelG = ctx.createRadialGradient(0,0,gelR*0.3,0,0,gelR);
+  gelG.addColorStop(0,'rgba(0,200,180,0.08)'); gelG.addColorStop(0.7,'rgba(0,200,180,0.04)'); gelG.addColorStop(1,'rgba(0,200,180,0.01)');
+  ctx.beginPath(); ctx.arc(0,0,gelR,0,Math.PI*2); ctx.fillStyle=gelG; ctx.fill();
+  ctx.beginPath(); ctx.arc(0,0,gelR,0,Math.PI*2);
+  ctx.strokeStyle='rgba(0,200,180,0.22)'; ctx.lineWidth=1.5; ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
+  ctx.restore();
+
+  // Layer 2: Skin
+  ctx.save(); ctx.translate(cx,cy); ctx.scale(1,bodyH/bodyW);
+  const skinG=ctx.createRadialGradient(-bodyW*0.1,0,bodyW*0.15,0,0,bodyW*1.02);
+  skinG.addColorStop(0,'rgba(42,95,84,0.92)'); skinG.addColorStop(0.65,'rgba(26,65,58,0.96)'); skinG.addColorStop(1,'rgba(15,42,40,0.92)');
+  ctx.beginPath(); ctx.arc(0,0,bodyW,0,Math.PI*2); ctx.fillStyle=skinG; ctx.fill();
+  ctx.restore();
+
+  // Layer 3: Collagen ring
+  ctx.save(); ctx.translate(cx,cy); ctx.scale(1,bodyH/bodyW);
+  const colG=ctx.createRadialGradient(0,0,bodyW*0.52,0,0,bodyW*0.82);
+  colG.addColorStop(0,'rgba(0,160,140,0.04)'); colG.addColorStop(1,'rgba(0,180,160,0.20)');
+  ctx.beginPath(); ctx.arc(0,0,bodyW*0.82,0,Math.PI*2); ctx.fillStyle=colG; ctx.fill();
+  ctx.restore();
+
+  // Layer 4: Muscle/organs
+  ctx.save(); ctx.translate(cx,cy); ctx.scale(1,bodyH/bodyW);
+  const muscG=ctx.createRadialGradient(0,0,0,0,0,bodyW*0.56);
+  muscG.addColorStop(0,'rgba(62,134,122,0.65)'); muscG.addColorStop(1,'rgba(32,82,72,0.48)');
+  ctx.beginPath(); ctx.arc(0,0,bodyW*0.56,0,Math.PI*2); ctx.fillStyle=muscG; ctx.fill();
+  ctx.restore();
+
+  // Skeleton hint
+  ctx.save(); ctx.translate(cx,cy); ctx.scale(1,bodyH/bodyW);
+  ctx.beginPath(); ctx.arc(0,0,bodyW*0.26,0,Math.PI*2);
+  ctx.strokeStyle='rgba(0,200,180,0.14)'; ctx.lineWidth=1; ctx.setLineDash([2,4]); ctx.stroke(); ctx.setLineDash([]);
+  ctx.restore();
+
+  // Dorsal fin
+  ctx.save(); ctx.translate(cx, cy-bodyH*0.92);
+  const dfH=bodyH*0.44, dfW=bodyW*0.24;
+  const dfG=ctx.createLinearGradient(0,0,0,-dfH);
+  dfG.addColorStop(0,'rgba(40,100,90,0.9)'); dfG.addColorStop(1,'rgba(20,70,65,0.5)');
+  ctx.beginPath(); ctx.moveTo(-dfW*0.26,0); ctx.bezierCurveTo(-dfW*0.07,-dfH*0.44,dfW*0.17,-dfH*0.90,dfW*0.07,-dfH); ctx.bezierCurveTo(dfW*0.30,-dfH*0.66,dfW*0.46,-dfH*0.26,dfW*0.26,0); ctx.closePath();
+  ctx.fillStyle=dfG; ctx.fill(); ctx.strokeStyle='rgba(0,200,180,0.26)'; ctx.lineWidth=0.8; ctx.stroke();
+  ctx.restore();
+
+  // Anal fin
+  ctx.save(); ctx.translate(cx, cy+bodyH*0.92);
+  const afH=bodyH*0.42, afW=bodyW*0.22;
+  const afG=ctx.createLinearGradient(0,0,0,afH);
+  afG.addColorStop(0,'rgba(40,100,90,0.9)'); afG.addColorStop(1,'rgba(20,70,65,0.5)');
+  ctx.beginPath(); ctx.moveTo(-afW*0.26,0); ctx.bezierCurveTo(-afW*0.07,afH*0.44,afW*0.17,afH*0.90,afW*0.07,afH); ctx.bezierCurveTo(afW*0.30,afH*0.66,afW*0.46,afH*0.26,afW*0.26,0); ctx.closePath();
+  ctx.fillStyle=afG; ctx.fill(); ctx.strokeStyle='rgba(0,200,180,0.26)'; ctx.lineWidth=0.8; ctx.stroke();
+  ctx.restore();
+
+  // Clavus
+  ctx.save(); ctx.translate(cx+bodyW*0.98, cy);
+  const clG=ctx.createLinearGradient(0,-bodyH*0.26,0,bodyH*0.26);
+  clG.addColorStop(0,'rgba(36,92,82,0.85)'); clG.addColorStop(0.5,'rgba(52,112,96,0.92)'); clG.addColorStop(1,'rgba(36,92,82,0.85)');
+  ctx.beginPath(); ctx.moveTo(0,-bodyH*0.24); ctx.bezierCurveTo(bodyW*0.15,-bodyH*0.18,bodyW*0.19,-bodyH*0.06,bodyW*0.12,0); ctx.bezierCurveTo(bodyW*0.19,bodyH*0.06,bodyW*0.15,bodyH*0.18,0,bodyH*0.24); ctx.bezierCurveTo(-bodyW*0.04,bodyH*0.09,-bodyW*0.04,-bodyH*0.09,0,-bodyH*0.24); ctx.closePath();
+  ctx.fillStyle=clG; ctx.fill(); ctx.strokeStyle='rgba(0,200,180,0.20)'; ctx.lineWidth=0.7; ctx.stroke();
+  ctx.restore();
+
+  // Pectoral fin
+  ctx.save(); ctx.translate(cx-bodyW*0.32, cy+bodyH*0.04); ctx.rotate(-0.26);
+  ctx.beginPath(); ctx.moveTo(0,0); ctx.bezierCurveTo(-bodyW*0.06,-bodyH*0.05,-bodyW*0.16,-bodyH*0.10,-bodyW*0.20,-bodyH*0.06); ctx.bezierCurveTo(-bodyW*0.15,-bodyH*0.015,-bodyW*0.08,bodyH*0.025,0,0); ctx.closePath();
+  ctx.fillStyle='rgba(40,100,90,0.85)'; ctx.fill();
+  ctx.restore();
+
+  // Eye
+  const eyeX=cx-bodyW*0.52, eyeY=cy-bodyH*0.07;
+  const eyeR=bodyW*0.070;
+  ctx.beginPath(); ctx.arc(eyeX,eyeY,eyeR,0,Math.PI*2); ctx.fillStyle='rgba(5,20,18,0.95)'; ctx.fill();
+  ctx.strokeStyle='rgba(0,200,180,0.5)'; ctx.lineWidth=1.2; ctx.stroke();
+  ctx.beginPath(); ctx.arc(eyeX,eyeY,eyeR*0.44,0,Math.PI*2); ctx.fillStyle='rgba(0,140,120,0.6)'; ctx.fill();
+  ctx.beginPath(); ctx.arc(eyeX,eyeY,eyeR*0.22,0,Math.PI*2); ctx.fillStyle='rgba(0,0,0,0.9)'; ctx.fill();
+  ctx.beginPath(); ctx.arc(eyeX+eyeR*0.18,eyeY-eyeR*0.18,eyeR*0.10,0,Math.PI*2); ctx.fillStyle='rgba(255,255,255,0.6)'; ctx.fill();
+
+  // Mouth
+  const mX=cx-bodyW*0.80, mY=cy+bodyH*0.08;
+  ctx.beginPath(); ctx.moveTo(mX,mY-eyeR*0.32); ctx.lineTo(mX+bodyW*0.036,mY); ctx.lineTo(mX,mY+eyeR*0.32);
+  ctx.strokeStyle='rgba(0,180,160,0.4)'; ctx.lineWidth=1.3; ctx.stroke();
+
+  // ANNOTATION HELPER
+  function ann(fromX,fromY,toX,toY,label,sub,color,align){
+    ctx.beginPath(); ctx.moveTo(fromX,fromY); ctx.lineTo(toX,toY);
+    ctx.strokeStyle=color; ctx.lineWidth=1.1; ctx.setLineDash([4,3]); ctx.stroke(); ctx.setLineDash([]);
+    ctx.beginPath(); ctx.arc(toX,toY,2.5,0,Math.PI*2); ctx.fillStyle=color; ctx.fill();
+    const tx=align==='right'?fromX+7:fromX-7;
+    ctx.textAlign=align==='right'?'left':'right';
+    ctx.font=`bold 9px 'DM Mono'`; ctx.fillStyle='rgba(0,220,200,0.88)';
+    ctx.fillText(label,tx,fromY-4);
+    ctx.font=`8px 'DM Mono'`; ctx.fillStyle='rgba(90,138,130,0.82)';
+    ctx.fillText(sub,tx,fromY+7);
+  }
+
+  // Left annotations (from annotation margin area)
+  const lx=annotMarginH-8;
+  const rx=W-annotMarginH+8;
+
+  ann(lx, cy-bodyH*0.72, cx-bodyW*0.92, cy-bodyH*0.58, 'GELATINOUS CAPSULE','44% body mass, ~0 kcal/day','rgba(0,200,180,0.72)','left');
+  ann(lx, cy-bodyH*0.30, cx-bodyW*0.82, cy-bodyH*0.25, 'THICK SKIN','~3 in, leathery dermis','rgba(100,200,160,0.70)','left');
+  ann(lx, cy+bodyH*0.16, cx-bodyW*0.32, cy+bodyH*0.06, 'MUSCLE + ORGANS','remaining ~56% of mass','rgba(80,180,140,0.70)','left');
+  ann(lx, cy+bodyH*0.50, cx-bodyW*0.07, cy+bodyH*0.07, 'CARTILAGE SKELETON','degenerate, low mineral','rgba(60,160,130,0.70)','left');
+
+  ann(rx, cy-bodyH*0.62, cx+bodyW*0.05, cy-bodyH*0.95, 'DORSAL FIN','primary propulsion','rgba(0,180,160,0.65)','right');
+  ann(rx, cy+bodyH*0.20, cx+bodyW*1.08, cy+bodyH*0.04, 'CLAVUS','pseudo-tail, no true fin','rgba(0,160,150,0.65)','right');
+  ann(rx, cy+bodyH*0.55, cx+bodyW*0.50, cy,'1,000 kg avg / 10 ft','adult size range','rgba(245,166,35,0.78)','right');
+
+  // Watermark
+  ctx.textAlign='left'; ctx.font=`bold 9px 'DM Mono'`; ctx.fillStyle='rgba(0,200,180,0.15)';
+  ctx.fillText('MOLA MOLA  /  OCEAN SUNFISH',14,18);
+  ctx.font=`8px 'DM Mono'`; ctx.fillStyle='rgba(0,200,180,0.09)';
+  ctx.fillText('Mola mola -- Teleostei, Molidae',14,30);
+}
+
+window.addEventListener('load',()=>setTimeout(()=>{ drawMola(); drawNL(); },120));
+window.addEventListener('resize',()=>{ drawMola(); drawNL(); });
+</script>
+</body>
+</html>
